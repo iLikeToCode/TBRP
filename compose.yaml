@@ -1,0 +1,7 @@
+﻿services:
+  tbrp:
+    image: tbrp
+    build:
+      context: .
+      dockerfile: TBRP/Dockerfile
+

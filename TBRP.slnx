@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="compose.yaml" />
+  </Folder>
+  <Project Path="TBRP.ApiClient\TBRP.ApiClient.csproj" />
+  <Project Path="TBRP.DiscordBot/TBRP.DiscordBot.csproj" />
+  <Project Path="TBRP.Runner\TBRP.Runner.csproj" />
+</Solution>
