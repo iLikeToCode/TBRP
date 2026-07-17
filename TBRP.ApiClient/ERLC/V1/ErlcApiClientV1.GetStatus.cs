@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using RestSharp;
 
-namespace TBRP.ErlcAPI;
+namespace TBRP.ErlcAPI.ERLC.V1;
 
-public partial class ErlcApiClientV1
+partial class ErlcApiClientV1
 {
     public async Task<GetStatusResponse> GetStatus()
     {

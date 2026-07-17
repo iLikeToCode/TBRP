@@ -6,7 +6,10 @@ using TBRP.ErlcAPI;
 namespace TBRP.DiscordBot.Commands.SlashCommands.ERLC;
 
 [SlashCommand("erlc", "ERLC In-game Commands")]
-public partial class ErlcCommands(GatewayClient client, ApiClient apiClient, ApplicationCommandService<ApplicationCommandContext> applicationCommandService) : ApplicationCommandModule<ApplicationCommandContext>
+public partial class ErlcCommands(ApiClient apiClient) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    
+    private static void Log(string message)
+    {
+        Console.WriteLine($"[{DateTimeOffset.UtcNow:O}] {message}");
+    }
 }

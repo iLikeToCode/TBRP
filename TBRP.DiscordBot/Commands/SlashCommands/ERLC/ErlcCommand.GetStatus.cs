@@ -7,11 +7,14 @@ namespace TBRP.DiscordBot.Commands.SlashCommands.ERLC;
 
 partial class ErlcCommands
 {
-    [SubSlashCommand("status", "Fetch in-game server status.")]
-    public async Task<InteractionMessageProperties> Status()
+    [SubSlashCommand("status", "Fetch the in-game server's status.")]
+    public async Task Status()
     {
-        var callback = InteractionCallback.DeferredMessage();
-        var status = await apiClient.V1.GetStatus();
+        await Context.Interaction.SendResponseAsync(
+            InteractionCallback.DeferredMessage()
+        );
+
+        var status = await apiClient.ErlcV1.GetStatus();
 
         var coOwners = new StringBuilder();
         foreach (var user in await apiClient.RobloxUserV1.GetUsersByIds(status.CoOwners))
@@ -83,7 +86,7 @@ partial class ErlcCommands
                 }
             ]
         };
-
-        return new InteractionMessageProperties().AddEmbeds(embed);
+        
+        await Context.Interaction.ModifyResponseAsync(m => m.AddEmbeds(embed));
     }
 }
