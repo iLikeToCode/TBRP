@@ -3,5 +3,5 @@
     image: tbrp
     build:
       context: .
-      dockerfile: TBRP/Dockerfile
+      dockerfile: TBRP.Runner/Dockerfile
 
