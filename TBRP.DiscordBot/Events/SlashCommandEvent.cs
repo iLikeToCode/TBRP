@@ -32,6 +32,15 @@ public class SlashCommandEvent (GatewayClient client,
             }
             catch (Exception exception)
             {
+                try
+                {
+                    await SendErrorResponseAsync(applicationCommandInteraction, exception);
+                }
+                catch (Exception responseException)
+                {
+                    DiscordBotClient.Log($"Failed to send command error response: {responseException}");
+                }
+
                 throw;
             }
 
@@ -46,7 +55,36 @@ public class SlashCommandEvent (GatewayClient client,
             }
             catch (Exception exception)
             {
+                DiscordBotClient.Log($"Failed to send command failure response: {exception}");
+                throw;
             }
         };
+    }
+
+    private static async Task SendErrorResponseAsync(ApplicationCommandInteraction interaction, Exception exception)
+    {
+        DiscordBotClient.Log($"Slash command failed: {exception}");
+
+        const string message = "Something went wrong while running that command.";
+
+        try
+        {
+            await interaction.ModifyResponseAsync(m => m.WithContent(message));
+            return;
+        }
+        catch (Exception modifyException)
+        {
+            DiscordBotClient.Log($"Failed to modify command response after error: {modifyException}");
+        }
+
+        try
+        {
+            await interaction.SendResponseAsync(InteractionCallback.Message(message));
+        }
+        catch (Exception responseException)
+        {
+            DiscordBotClient.Log($"Failed to send command error response: {responseException}");
+            throw;
+        }
     }
 }

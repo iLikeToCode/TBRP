@@ -30,9 +30,18 @@ public class AutocompleteInteractionEvent(GatewayClient client,
                 result = await applicationCommandService.ExecuteAutocompleteAsync(
                     new AutocompleteInteractionContext(autocompleteInteraction, client), serviceProvider);
             }
-            catch
+            catch (Exception exception)
             {
-                await autocompleteInteraction.SendResponseAsync(InteractionCallback.Autocomplete([]));
+                try
+                {
+                    await autocompleteInteraction.SendResponseAsync(InteractionCallback.Autocomplete([]));
+                }
+                catch (Exception responseException)
+                {
+                    DiscordBotClient.Log($"Failed to send autocomplete error response: {responseException}");
+                }
+
+                DiscordBotClient.Log($"Autocomplete interaction failed: {exception}");
                 throw;
             }
 

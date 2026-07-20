@@ -6,16 +6,28 @@ namespace TBRP.Api.Structs;
 
 public class ExtendedRestClient
 {
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan MaxRateLimitDelay = TimeSpan.FromSeconds(30);
+
     private readonly RestClient _client;
     private readonly Uri? _baseUrl;
 
     public ExtendedRestClient(RestClientOptions options)
     {
         var url = Environment.GetEnvironmentVariable("PROXY_URL");
-        options.Proxy = new WebProxy(url)
+        if (!string.IsNullOrWhiteSpace(url))
         {
-            Credentials = new NetworkCredential("tbrp", "InsaneTBRP08642")
-        };
+            options.Proxy = new WebProxy(url)
+            {
+                Credentials = new NetworkCredential("tbrp", "InsaneTBRP08642")
+            };
+        }
+
+        if (options.Timeout is null || options.Timeout == Timeout.InfiniteTimeSpan)
+        {
+            options.Timeout = DefaultTimeout;
+        }
+
         _client = new RestClient(options);
         _baseUrl = options.BaseUrl;
     }
@@ -42,7 +54,6 @@ public class ExtendedRestClient
     {
         while (true)
         {
-            var requestName = GetRequestName(request);
             var stopwatch = Stopwatch.StartNew();
 
             RestResponse<T> response;
@@ -53,7 +64,7 @@ public class ExtendedRestClient
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
                 stopwatch.Stop();
-                throw;
+                throw new HttpRequestException($"{GetRequestName(request)} failed before receiving a response.", exception);
             }
 
             stopwatch.Stop();
@@ -67,7 +78,7 @@ public class ExtendedRestClient
                                 ?? "No error message returned.";
 
                     throw new HttpRequestException(
-                        $"Request failed with status code {(int)response.StatusCode}: {error}");
+                        $"{GetRequestName(request)} failed with status code {(int)response.StatusCode}: {error}");
                 }
 
                 if (response.Data is not null) return response.Data;
@@ -88,6 +99,12 @@ public class ExtendedRestClient
 
                 if (delay < TimeSpan.Zero)
                     delay = TimeSpan.Zero;
+            }
+
+            if (delay > MaxRateLimitDelay)
+            {
+                throw new TimeoutException(
+                    $"{GetRequestName(request)} was rate limited for longer than {MaxRateLimitDelay.TotalSeconds:N0} seconds.");
             }
 
             await Task.Delay(delay, cancellationToken);

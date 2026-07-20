@@ -33,6 +33,15 @@ public class ButtonInteractionEvent (GatewayClient client,
             }
             catch (Exception exception)
             {
+                try
+                {
+                    await SendErrorResponseAsync(buttonInteraction, exception);
+                }
+                catch (Exception responseException)
+                {
+                    DiscordBotClient.Log($"Failed to send button error response: {responseException}");
+                }
+
                 throw;
             }
 
@@ -47,7 +56,36 @@ public class ButtonInteractionEvent (GatewayClient client,
             }
             catch (Exception exception)
             {
+                DiscordBotClient.Log($"Failed to send button failure response: {exception}");
+                throw;
             }
         };
+    }
+
+    private static async Task SendErrorResponseAsync(ButtonInteraction interaction, Exception exception)
+    {
+        DiscordBotClient.Log($"Button interaction failed: {exception}");
+
+        const string message = "Something went wrong while handling that button.";
+
+        try
+        {
+            await interaction.ModifyResponseAsync(m => m.WithContent(message));
+            return;
+        }
+        catch (Exception modifyException)
+        {
+            DiscordBotClient.Log($"Failed to modify button response after error: {modifyException}");
+        }
+
+        try
+        {
+            await interaction.SendResponseAsync(InteractionCallback.Message(message));
+        }
+        catch (Exception responseException)
+        {
+            DiscordBotClient.Log($"Failed to send button error response: {responseException}");
+            throw;
+        }
     }
 }
