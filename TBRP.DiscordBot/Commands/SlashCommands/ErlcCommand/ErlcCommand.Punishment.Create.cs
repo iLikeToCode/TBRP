@@ -4,6 +4,7 @@ using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
 using TBRP.DB;
 using TBRP.Api;
+using TBRP.DiscordBot.Commands.Autocomplete;
 
 namespace TBRP.DiscordBot.Commands.SlashCommands.ErlcCommand;
 
@@ -12,7 +13,12 @@ partial class ErlcCommand
     partial class PunishmentCommand
     {
         [SubSlashCommand("create", "Create a punishment record")]
-        public async Task Create(PunishmentType type, string robloxUser, string reason, string? expiry = "1d")
+        public async Task Create(PunishmentType type,
+            [SlashCommandParameter(AutocompleteProviderType = typeof(IngameRobloxUserAutocompleteProvider))]
+            string robloxUser,
+            string reason,
+            [SlashCommandParameter(AutocompleteProviderType = typeof(PunishmentExpiryAutocompleteProvider))]
+            string? expiry = "1d")
         {
             if (Context.User is GuildUser guildUser)
             {

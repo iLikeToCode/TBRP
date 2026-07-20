@@ -8,7 +8,7 @@ using TBRP.DiscordBot.Structs;
 namespace TBRP.DiscordBot.Events;
 
 public class SlashCommandEvent (GatewayClient client,
-    ApplicationCommandService<ApplicationCommandContext> applicationCommandService,
+    ApplicationCommandService<ApplicationCommandContext, AutocompleteInteractionContext> applicationCommandService,
     IServiceProvider serviceProvider)
     : IEventHandler
 {

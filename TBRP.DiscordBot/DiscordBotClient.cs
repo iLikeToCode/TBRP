@@ -16,7 +16,7 @@ public partial class DiscordBotClient
 {
     private readonly GatewayClient _client;
     private readonly ServiceProvider _provider;
-    private readonly ApplicationCommandService<ApplicationCommandContext> _applicationCommandService;
+    private readonly ApplicationCommandService<ApplicationCommandContext, AutocompleteInteractionContext> _applicationCommandService;
     private readonly ComponentInteractionService<ButtonInteractionContext> _buttonService;
     private readonly DiscordBotJobRunner _jobRunner;
     private readonly CancellationTokenSource _jobCancellationTokenSource = new();
@@ -27,7 +27,7 @@ public partial class DiscordBotClient
 
         services.AddSingleton(new ApiClient(erlcApiKey));
 
-        services.AddSingleton(new ApplicationCommandService<ApplicationCommandContext>());
+        services.AddSingleton(new ApplicationCommandService<ApplicationCommandContext, AutocompleteInteractionContext>());
         services.AddSingleton(new ComponentInteractionService<ButtonInteractionContext>());
 
         services.AddSingleton<GatewayClient>(sp =>
@@ -64,7 +64,7 @@ public partial class DiscordBotClient
         _client = _provider.GetRequiredService<GatewayClient>();
         _jobRunner = _provider.GetRequiredService<DiscordBotJobRunner>();
         
-        _applicationCommandService = _provider.GetRequiredService<ApplicationCommandService<ApplicationCommandContext>>();
+        _applicationCommandService = _provider.GetRequiredService<ApplicationCommandService<ApplicationCommandContext, AutocompleteInteractionContext>>();
         
         _applicationCommandService.AddModules(
             Assembly.GetExecutingAssembly());

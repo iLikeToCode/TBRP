@@ -11,15 +11,32 @@ public abstract class PeriodicDiscordBotJob : IDiscordBotJob
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         if (RunImmediately)
-            await ExecuteOnceAsync(cancellationToken);
+            await ExecuteOnceSafelyAsync(cancellationToken);
 
         using var timer = new PeriodicTimer(Interval);
 
         while (await timer.WaitForNextTickAsync(cancellationToken))
         {
-            await ExecuteOnceAsync(cancellationToken);
+            await ExecuteOnceSafelyAsync(cancellationToken);
         }
     }
 
     protected abstract Task ExecuteOnceAsync(CancellationToken cancellationToken);
+
+    private async Task ExecuteOnceSafelyAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ExecuteOnceAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            DiscordBotClient.Log($"Discord bot job run failed: {Name}");
+            Console.WriteLine(exception);
+        }
+    }
 }

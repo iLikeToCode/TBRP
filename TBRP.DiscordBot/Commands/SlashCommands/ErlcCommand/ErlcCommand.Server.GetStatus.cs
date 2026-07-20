@@ -28,7 +28,7 @@ partial class ErlcCommand
 
             var embed = new EmbedProperties()
             {
-                Title = status.ServerName,
+                Title = status.Name,
                 Color = new Color(255, 255, 255),
                 Fields =
                 [

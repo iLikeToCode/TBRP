@@ -5,22 +5,20 @@ namespace TBRP.Api.ERLC.V1;
 
 partial class ErlcApiClientV1
 {
-    public async Task<GetStatusResponse> GetStatus()
+    public async Task<ErlcServerStatus> GetStatus()
     {
         var request = new RestRequest("server");
 
-        var response = await _client.GetAsync<GetStatusResponse>(request);
+        var response = await _client.GetAsync<ErlcServerStatus>(request);
 
         return response ?? throw new Exception("Response is null.");
     }
 }
 
-// ReSharper disable once ClassNeverInstantiated.Global
-// ReSharper disable once UnusedAutoPropertyAccessor.Global
-public sealed class GetStatusResponse
+public sealed class ErlcServerStatus
 {
     [JsonPropertyName("Name")]
-    public required string ServerName { get; init; }
+    public required string Name { get; init; }
 
     [JsonPropertyName("OwnerId")]
     public required long OwnerId { get; init; }
