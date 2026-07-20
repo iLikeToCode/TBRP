@@ -1,5 +1,7 @@
 using NetCord;
+using NetCord.Gateway;
 using NetCord.Rest;
+using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace TBRP.DiscordBot.Commands.SlashCommands.ErlcCommand;
@@ -9,6 +11,7 @@ partial class ErlcCommand
     partial class ServerCommand
     {
         [SubSlashCommand("command", "Send a command to the in-game server.")]
+        [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
         public async Task Command(string command)
         {
 
