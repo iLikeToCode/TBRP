@@ -9,6 +9,7 @@ public class IngameRobloxUserAutocompleteProvider(ApiClient apiClient) : StringA
         string value,
         AutocompleteInteractionContext context)
     {
+        return [];
         if (value.Length < 3)
         {
             return [];
