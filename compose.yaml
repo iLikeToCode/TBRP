@@ -4,4 +4,34 @@
     build:
       context: .
       dockerfile: TBRP.Runner/Dockerfile
+    env_file: "TBRP.Runner/.env"
+    depends_on:
+      db:
+        condition: service_healthy
 
+  db:
+    image: postgres
+    env_file: "TBRP.Runner/.env"
+    environment:
+      POSTGRES_DB: tbrp
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/18/docker
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

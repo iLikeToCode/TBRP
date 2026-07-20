@@ -1,0 +1,21 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  tbrp:
+    build:
+      context: "/home/archie/RiderProjects/TBRP"
+      dockerfile: "TBRP.Runner/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net10.0/TBRP.Runner.dll"
+    environment:
+      DOTNET_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "tbrp:dev"
+    ports: []
+    volumes:
+    - "/home/archie/RiderProjects/TBRP/TBRP.Runner:/app:rw"
+    - "/home/archie/RiderProjects/TBRP:/src:rw"
+    - "/home/archie/.nuget/packages:/home/app/.nuget/packages"
+    working_dir: "/app"

@@ -5,17 +5,20 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["TBRP/TBRP.csproj", "TBRP/"]
-RUN dotnet restore "TBRP/TBRP.csproj"
+COPY ["TBRP.Runner/TBRP.Runner.csproj", "TBRP.Runner/"]
+COPY ["TBRP.DiscordBot/TBRP.DiscordBot.csproj", "TBRP.DiscordBot/"]
+COPY ["TBRP.DB/TBRP.DB.csproj", "TBRP.DB/"]
+COPY ["TBRP.Api/TBRP.Api.csproj", "TBRP.Api/"]
+RUN dotnet restore "TBRP.Runner/TBRP.Runner.csproj"
 COPY . .
-WORKDIR "/src/TBRP"
-RUN dotnet build "./TBRP.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/TBRP.Runner"
+RUN dotnet build "./TBRP.Runner.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TBRP.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./TBRP.Runner.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TBRP.dll"]
+ENTRYPOINT ["dotnet", "TBRP.Runner.dll"]

@@ -13,7 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TBRP.ApiClient\TBRP.ApiClient.csproj" />
+      <ProjectReference Include="..\TBRP.Api\TBRP.Api.csproj" />
+      <ProjectReference Include="..\TBRP.DB\TBRP.DB.csproj" />
     </ItemGroup>
 
 </Project>

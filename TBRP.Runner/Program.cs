@@ -1,6 +1,11 @@
-﻿using TBRP.DiscordBot;
+﻿using Microsoft.EntityFrameworkCore;
+using TBRP.DB;
+using TBRP.DiscordBot;
 
 DotNetEnv.Env.Load();
+
+await using var db = new TbrpContext();
+await db.Database.MigrateAsync();
 
 var discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN")
                    ?? throw new InvalidOperationException("Missing DISCORD_TOKEN");
