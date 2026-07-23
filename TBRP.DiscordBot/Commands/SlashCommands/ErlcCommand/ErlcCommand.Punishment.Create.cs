@@ -77,6 +77,14 @@ partial class ErlcCommand
                 return;
             }
 
+            if (type == PunishmentType.Kick)
+            {
+                expiryDate = DiscordBotClient.ParseDuration("1h");
+            } else if (type == PunishmentType.Warn)
+            {
+                expiryDate = DiscordBotClient.ParseDuration("2h");
+            }
+
             await Context.Interaction.SendResponseAsync(InteractionCallback.Message(new InteractionMessageProperties()
             {
                 Embeds =
@@ -109,7 +117,7 @@ partial class ErlcCommand
                             new EmbedFieldProperties()
                             {
                                 Name = "Issuer",
-                                Value = $"{Context.User.Id}"
+                                Value = $"<@{Context.User.Id}>"
                             }
                         ]
                     }
@@ -122,7 +130,8 @@ partial class ErlcCommand
                             "Cancel", ButtonStyle.Danger)
                         ]
                         )
-                ]
+                ],
+                Flags = MessageFlags.Ephemeral
             }));
         }
     }
@@ -139,13 +148,13 @@ public class Erlc_Punishment_Create_Buttons (ApiClient apiClient) : ComponentInt
         PunishmentType.TryParse(fields.First(m => m.Name == "Type").Value, out type);
         
         var expiry = fields.First(m => m.Name == "Expiry");
-        var expiryDate = expiry.Value == "None" ? (DateTime?)null : DiscordBotClient.ParseDiscordTimestamp(expiry.Value);
+        var expiryDate = expiry.Value == "Never" ? (DateTime?)null : DiscordBotClient.ParseDiscordTimestamp(expiry.Value);
 
         var robloxUserName = fields.First(m => m.Name == "User").Value;
         
         var reason = fields.First(m => m.Name == "Reason").Value;
         
-        var issuer = fields.First(m => m.Name == "Issuer").Value;
+        var issuer = fields.First(m => m.Name == "Issuer").Value.Split("<@")[1].Split(">")[0];
 
         if (Context.User.Id.ToString() != issuer)
         {
@@ -156,62 +165,73 @@ public class Erlc_Punishment_Create_Buttons (ApiClient apiClient) : ComponentInt
             }));
             return;
         }
+        var users = await apiClient.RobloxUserV1.GetUsersByUsername(robloxUserName);
+        if (users is null || users.Length < 1) return;
+        var id = users[0].Id;
         
         await using var ctx = new TbrpContext();
+        Punishment? punishment = null;
 
-        if (type == PunishmentType.Warn)
+        switch (type)
         {
-            ctx.Punishments.Add(new Punishment()
-            {
-                Type = type,
-                Reason = reason,
-                Expiry = expiryDate,
-                CreatorId = Context.User.Id,
-                ActionTaken = false
-            });
-        }
-        else
-        {
-            if (type == PunishmentType.Kick)
-            {
+            case PunishmentType.Warn:
+                punishment = new Punishment()
+                {
+                    Type = type,
+                    Reason = reason,
+                    Expiry = expiryDate,
+                    CreatorId = Context.User.Id,
+                    RobloxId = id,
+                    ActionTaken = false
+                };
+                ctx.Punishments.Add(punishment);
+                break;
+            case PunishmentType.Kick:
                 await apiClient.ErlcV2.SendCommand($":kick {robloxUserName}");
-                ctx.Punishments.Add(new Punishment()
+                punishment = new Punishment()
                 {
                     Type = type,
                     Reason = reason,
                     Expiry = expiryDate,
                     CreatorId = Context.User.Id,
-                    ActionTaken = false
-                });
-            } else if (type == PunishmentType.Ban)
+                    RobloxId = id,
+                    ActionTaken = true
+                };
+                ctx.Punishments.Add(punishment);
+                break;
+            case PunishmentType.Ban:
             {
-                var users = await apiClient.RobloxUserV1.GetUsersByUsername(robloxUserName);
-                if (users is null || users.Length < 1) return;
-                var id = users[0].Id;
                 await apiClient.ErlcV2.SendCommand($":ban {id}");
-                ctx.Punishments.Add(new Punishment()
+                punishment = new Punishment()
                 {
                     Type = type,
                     Reason = reason,
                     Expiry = expiryDate,
                     CreatorId = Context.User.Id,
-                    ActionTaken = false
-                });
+                    RobloxId = id,
+                    ActionTaken = true
+                };
+                ctx.Punishments.Add(punishment);
+                break;
             }
         }
 
         try
         {
             await ctx.SaveChangesAsync();
-            await Context.Interaction.SendResponseAsync(InteractionCallback.Message(new InteractionMessageProperties()
+            
+            await Context.Interaction.SendResponseAsync(InteractionCallback.ModifyMessage(m =>
             {
-                Embeds = [
-                new EmbedProperties()
-                {
-                    Title = "Punishment Confirmed",
-                    Description = "Punishment has been successfully stored and any necessary action has been or will be taken.",
-                    Color = new Color(0, 128, 0)
-                }]
+                m.WithEmbeds([
+                    new EmbedProperties()
+                    {
+                        Title = $"Punishment #{punishment?.Id} Confirmed",
+                        Description =
+                            "Punishment has been successfully stored and any necessary action has been or will be taken.",
+                        Color = new Color(0, 128, 0)
+                    }
+                ]);
+                m.WithComponents([]);
             }));
         }
         catch (Exception e)
